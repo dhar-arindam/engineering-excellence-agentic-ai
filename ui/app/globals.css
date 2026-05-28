@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* Marvel Light Theme */
+  --background: #fff8f8;
+  --foreground: #1a0000;
+  --card: #ffffff;
+  --card-foreground: #1a0000;
+  --sidebar: #1a0000;
+  --sidebar-foreground: #fce4e4;
+  --border: #fce4e4;
+  --muted: #fef2f2;
+  --muted-foreground: #9f4b4b;
+  --accent: #ED1D24;
+  --ring: #ED1D24;
+  --radius: 0.5rem;
+}
+
+.dark {
+  /* Marvel Dark Theme */
+  --background: #0d0000;
+  --foreground: #fff5f5;
+  --card: #1a0505;
+  --card-foreground: #fff5f5;
+  --sidebar: #0d0000;
+  --sidebar-foreground: #fcc2c2;
+  --border: #3d0a0a;
+  --muted: #2a0808;
+  --muted-foreground: #9f6b6b;
+  --accent: #ED1D24;
+  --ring: #ED1D24;
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #f4a9ac; border-radius: 3px; }
+.dark ::-webkit-scrollbar-thumb { background: #5a1a1a; }
+
+/* ── Animations ──────────────────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96) translateY(-6px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in   { animation: fadeIn   0.25s ease-out both; }
+.animate-fade-up   { animation: fadeUp   0.35s ease-out both; }
+.animate-scale-in  { animation: scaleIn  0.2s  ease-out both; }
+.animate-slide-in  { animation: slideInLeft 0.3s ease-out both; }
+
+/* Staggered children — wrap a list in .stagger-children */
+.stagger-children > * {
+  opacity: 0;
+  animation: fadeUp 0.35s ease-out forwards;
+}
+.stagger-children > *:nth-child(1) { animation-delay:   0ms; }
+.stagger-children > *:nth-child(2) { animation-delay:  60ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 360ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 420ms; }

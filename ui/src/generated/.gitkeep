@@ -1,0 +1,4 @@
+# This directory is auto-generated. Do not edit manually.
+# Run `make export-openapi` to refresh the OpenAPI schemas.
+# Run `make gen-types` to regenerate TypeScript types.
+# Run `make gen-client` to regenerate the typed API client.

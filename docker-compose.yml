@@ -1,0 +1,138 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# ai-multi-agent — Monorepo Docker Compose
+#
+# Services
+# ────────
+#   frontend   Next.js 16 UI                      → http://localhost:3000
+#   backend    FastAPI + Uvicorn                   → http://localhost:8000
+#   worker     Arq scan task worker (2 replicas)
+#   postgres   PostgreSQL 15                       → localhost:5432
+#   redis      Redis 7                             → localhost:6379
+#
+# Quick start
+# ───────────
+#   cp .env.example .env      # fill in OPENAI_API_KEY, GITHUB_TOKEN
+#   docker compose up --build
+# ─────────────────────────────────────────────────────────────────────────────
+
+x-backend-env: &backend-env
+  APP_ENV: ${APP_ENV:-development}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  SECRET_KEY: ${SECRET_KEY:-change-me}
+  DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-ai_multi_agent}
+  REDIS_URL: redis://redis:6379/0
+  OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-placeholder}
+  OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o}
+  OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+  LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-60}
+  LLM_MAX_RETRIES: ${LLM_MAX_RETRIES:-3}
+  GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+  MAX_CONCURRENT_AGENTS: ${MAX_CONCURRENT_AGENTS:-5}
+  REVIEW_TIMEOUT_SECONDS: ${REVIEW_TIMEOUT_SECONDS:-300}
+  SCAN_MAX_CONCURRENT: ${SCAN_MAX_CONCURRENT:-3}
+  SCAN_TIMEOUT_SECONDS: ${SCAN_TIMEOUT_SECONDS:-600}
+  SCAN_LOCK_TTL_SECONDS: ${SCAN_LOCK_TTL_SECONDS:-660}
+
+x-backend-depends: &backend-depends
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+    scan-init:
+      condition: service_completed_successfully
+
+services:
+
+  # ── Volume permission initialiser ────────────────────────────────────────────
+  # Runs once at startup to ensure the shared scan_tmp volume is world-writable.
+  # Named Docker volumes are initialised as root:root 755; this fixes that before
+  # any backend/worker container tries to write to /tmp/scans.
+  scan-init:
+    image: alpine:3
+    volumes:
+      - scan_tmp:/tmp/scans
+    command: sh -c "chmod 777 /tmp/scans && echo 'scan_tmp permissions fixed'"
+    restart: "no"
+
+  # ── Frontend ────────────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      # Passed to the Next.js Node server at runtime. The server injects this
+      # into window.__ENV on every request, so no image rebuild is needed when
+      # the backend URL changes.
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # ── Backend API ─────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      <<: *backend-env
+    <<: *backend-depends
+    volumes:
+      - scan_tmp:/tmp/scans
+    restart: unless-stopped
+
+  # ── Arq scan worker ─────────────────────────────────────────────────────────
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: python -m arq app.infrastructure.arq_worker.WorkerSettings
+    environment:
+      <<: *backend-env
+    <<: *backend-depends
+    volumes:
+      - scan_tmp:/tmp/scans
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-ai_multi_agent}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Redis ────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  scan_tmp:

@@ -1,0 +1,40 @@
+# ── Dependencies (reinstalled inside Docker via npm ci) ────────────────────────
+node_modules
+
+# ── Local build output (rebuilt inside Docker) ─────────────────────────────────
+.next
+out
+build
+
+# ── Local dev / env files ───────────────────────────────────────────────────────
+.env
+.env.local
+.env.development
+.env.production
+
+# ── TypeScript incremental build cache ─────────────────────────────────────────
+*.tsbuildinfo
+
+# ── Editor / OS artefacts ───────────────────────────────────────────────────────
+.DS_Store
+*.pem
+.vscode
+.idea
+
+# ── Logs ───────────────────────────────────────────────────────────────────────
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ── Test / coverage ─────────────────────────────────────────────────────────────
+coverage
+
+# ── Git ────────────────────────────────────────────────────────────────────────
+.git
+.gitignore
+
+# ── Docs (not needed at runtime) ───────────────────────────────────────────────
+README.md
+AGENTS.md
+CLAUDE.md
