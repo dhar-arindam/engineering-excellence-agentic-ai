@@ -3,7 +3,7 @@
 A full-stack monorepo that analyses software repositories using a multi-agent AI pipeline and surfaces engineering health scores, architectural findings, security issues, and actionable recommendations.
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────────┐
 │                          Monorepo layout                         │
 │                                                                  │
 │  ai-multi-agent/                                                 │
@@ -11,7 +11,7 @@ A full-stack monorepo that analyses software repositories using a multi-agent AI
 │  ├── backend/     FastAPI backend + Arq worker                   │
 │  ├── docker-compose.yml   All 5 services in one command         │
 │  └── .env.example         Single env-var reference              │
-└──────────────────────────────────────────────────────────────────┘
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -280,7 +280,6 @@ Possible `status` values: `queued` → `running` → `completed` | `failed` | `c
 |----------|---------|-------------|
 | `GITHUB_TOKEN` | — | PAT for cloning private repos and posting PR review comments |
 
-
 ### Review & scan settings
 
 | Variable | Default | Description |
@@ -296,7 +295,7 @@ Possible `status` values: `queued` → `running` → `completed` | `failed` | `c
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | Backend URL visible to the browser and used for WebSocket connections. Injected at **runtime** by the Next.js server — change via container `environment`, no image rebuild required. |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | Backend URL visible to the browser and used for WebSocket connections. Injected at **runtime** by the Next.js server — change via container environment variables or `.env.local` for development |
 
 ---
 
@@ -380,5 +379,3 @@ Each replica processes up to `SCAN_MAX_CONCURRENT` (default 3) scans in parallel
 3. Frontend: add typed API calls in `lib/api-client.ts`; co-locate components with their pages.
 4. Run `pytest` (backend) and `npm run lint` (frontend) before opening a PR.
 5. All environment secrets go in `.env` — never committed.
-#   e n g i n e e r i n g - e x c e l l e n c e - a g e n t i c - a i  
- 
